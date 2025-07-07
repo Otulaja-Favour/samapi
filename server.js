@@ -17,6 +17,9 @@ connectDB().catch(err => {
 
 const app = express();
 
+// Trust proxy for deployment platforms like Render
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 app.use(cors());
@@ -25,7 +28,8 @@ app.use(cors());
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: 'Too many requests from this IP, please try again later.',
+  trustProxy: true // Trust the proxy for deployment platforms
 });
 app.use('/api/', limiter);
 
