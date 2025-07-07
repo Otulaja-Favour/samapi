@@ -1,4 +1,6 @@
 const Book = require('../models/Book');
+const path = require('path');
+const fs = require('fs');
 
 // Get all books
 const getBooks = async (req, res) => {
@@ -26,10 +28,20 @@ const getBookById = async (req, res) => {
 // Create new book
 const createBook = async (req, res) => {
   try {
-    const { title, author, description, price, image, rent, pdfUrl } = req.body;
+    const { title, author, description, price, image, rent } = req.body;
     
     // Generate book ID
     const bookId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    
+    // Handle PDF file upload
+    let pdfUrl = '';
+    if (req.file) {
+      // File was uploaded, create URL to serve the file
+      pdfUrl = `${req.protocol}://${req.get('host')}/api/files/${req.file.filename}`;
+    } else if (req.body.pdfUrl) {
+      // URL was provided instead of file
+      pdfUrl = req.body.pdfUrl;
+    }
     
     const book = new Book({
       _id: bookId,
@@ -105,11 +117,29 @@ const searchBooks = async (req, res) => {
   }
 };
 
+// Serve uploaded PDF files
+const serveFile = (req, res) => {
+  try {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, '../uploads', filename);
+    
+    // Check if file exists
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404).json({ message: 'File not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getBooks,
   getBookById,
   createBook,
   updateBook,
   deleteBook,
-  searchBooks
+  searchBooks,
+  serveFile
 };

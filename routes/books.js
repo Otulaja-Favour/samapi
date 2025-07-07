@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const upload = require('../middleware/upload');
 const {
   getBooks,
   getBookById,
   createBook,
   updateBook,
   deleteBook,
-  searchBooks
+  searchBooks,
+  serveFile
 } = require('../controllers/bookController');
 
 // @route   GET /api/books
@@ -25,9 +27,11 @@ router.get('/search', searchBooks);
 router.get('/:id', getBookById);
 
 // @route   POST /api/books
-// @desc    Create new book
+// @desc    Create new book (with optional PDF file upload)
 // @access  Public
-router.post('/', createBook);
+router.post('/', upload.single('pdfFile'), createBook);
+
+// Note: File serving is handled by server.js static middleware
 
 // @route   PUT /api/books/:id
 // @desc    Update book

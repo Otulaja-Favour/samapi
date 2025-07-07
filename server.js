@@ -44,6 +44,9 @@ app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/comments', require('./routes/comments'));
 
+// Serve uploaded files
+app.use('/api/files', express.static('uploads'));
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
