@@ -30,13 +30,23 @@ const createUser = async (req, res) => {
   try {
     const { firstName, lastName, email, phoneNumber, password, role = 'user' } = req.body;
     
+    // Validate that password is provided
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required' });
+    }
+    
+    // Validate password length - must be 6 characters or more
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+    
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash password
+    // Hash the password that the user provided (don't generate a new one)
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user ID
@@ -48,7 +58,7 @@ const createUser = async (req, res) => {
       lastName,
       email,
       phoneNumber,
-      password: hashedPassword,
+      password: hashedPassword, // Use the hashed version of user's password
       role,
       broughtBooks: [],
       borrowedBooks: [],
@@ -75,8 +85,11 @@ const updateUser = async (req, res) => {
   try {
     const updateData = { ...req.body, updatedAt: new Date() };
     
-    // If password is being updated, hash it
+    // If password is being updated, validate length and hash it
     if (updateData.password) {
+      if (updateData.password.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+      }
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
